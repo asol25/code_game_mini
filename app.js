@@ -66,7 +66,6 @@ class Balls {
     }
 }
 
-
 let storeBalls = [];
 
 while (storeBalls.length < 4) {

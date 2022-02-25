@@ -4,84 +4,115 @@ const ctx = canvas.getContext('2d');
 const width = canvas.width = window.innerWidth;
 const height = canvas.height = window.innerHeight;
 
+let para = document.querySelector('p');
+let index = 0;
 
+/* this is function random return number to min - max */
 function random(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * max) + min;
 }
 
+/* this is function random color return range to 0 to 255 */
 function randomRGB() {
     return `rgb(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)})`;
 }
 
-function Balls(x, y, speedsX, speedsY, size, colorBalls) {
+/* A Ball create with:
+ x: horizontal on screen
+ y: vertical on screen
+ exists: to check ball have exists
+ */
+function Balls(x, y, speedsX, speedsY, size, colorBalls, exists) {
     this.x = x;
     this.y = y;
     this.speedsX = speedsX;
     this.speedsY = speedsY;
     this.colorBalls = colorBalls;
     this.size = size;
-
-    Balls.prototype = draw;
-    Balls.prototype.constructor = Balls;
-
-    Balls.prototype.draw = function () {
-        ctx.beginPath();
-        ctx.fillStyle = colorBalls;
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    // collisionBalls(x, y, speedsX, speedsY, size);
+    this.exists = exists;
 }
 
-// function collisionBalls(x, y, speedsX, speedsY, size) {
-//     if ((x + size) >= width) {
-//         speedsX = -(speedsX);
-//     }
+/* draw a ball */
+Balls.prototype.draw = function () {
+    ctx.beginPath();
+    ctx.fillStyle = this.colorBalls;
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+}
 
-//     if ((y + size) >= height) {
-//         speedsY = -(speedsY);
-//     }
+/* Function caculate collision Delection of Ball with max-width and max-height
+when x is center of balls + size, we have a Ball compele and when Ball move width affter
+go to outside width, we will reverse horizontal, height also do is this way. 
+*/
+Balls.prototype.collisionCorner = function () {
+    if ((this.x + this.size) >= width) {
+        this.speedsX = -(this.speedsX);
+    }
 
-//     if ((x + size) <= width - width + size) {
-//         speedsX = -(speedsX);
-//     }
-//     if ((y + size) <= 0 + size) {
-//         speedsY = -(speedsY);
-//     }
+    if ((this.y + this.size) >= height) {
+        this.speedsY = -(this.speedsY);
+    }
 
-//     x += speedsX;
-//     y += speedsY;
-//     console.log("3")
-// }
-// ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-// ctx.fillRect(0, 0, width, height);
-// const size = random(10, 30);
-// let ball = new Balls(random(0 + size, width - size), random(0 + size, width - size), random(-10, 10), random(-10, 10), size, ramdomRGB());
-// ball.draw();
+    if ((this.x + this.size) <= 0 + this.size) {
+        this.speedsX = -(this.speedsX);
+    }
+    if ((this.y + this.size) <= 0 + this.size) {
+        this.speedsY = -(this.speedsY);
+    }
+    this.x += this.speedsX;
+    this.y += this.speedsY;
+}
+/* Calculator distance when collision deletection between Ball[0] to Ball[1]
+algorithm work centre points of the two circles and ensuring the distance between the centre 
+points are less than the two radii added together.
+*/
+
+/* When balls collision the Ball exists will get a raise size */
+Balls.prototype.collisionBalls = function () {
+    for (const checkBalls of ballStore) {
+        if (!(this === checkBalls) && checkBalls.exists) {
+            let dx = this.x - checkBalls.x;
+            let dy = this.y - checkBalls.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < this.size + checkBalls.size) {
+                index--;
+                para.textContent = 'Ball count: ' + index;
+                checkBalls.exists = this.checkBalls = false;
+                checkBalls.size = this.size += 10;
+            }
+        }
+    }
+}
 
 const ballStore = [];
+
 function createBalls() {
     const size = random(10, 30);
-    console.log("4");
-
     while (ballStore.length < 10) {
         let ball = new Balls(random(0 + size, width - size),
             random(0 + size, height - size), random(-10, 10),
-            random(-10, 10), size, randomRGB());
+            random(-10, 10), size, randomRGB(), true);
         ballStore.push(ball);
+        index++;
     }
+    para.textContent = 'Ball count: ' + index;
+
 }
 
 function loop() {
     createBalls();
-    console.log("3")
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
     ctx.fillRect(0, 0, width, height);
 
     for (const iterator of ballStore) {
-        iterator.draw();
+        if (iterator.exists) {
+            iterator.draw();
+            iterator.collisionCorner();
+            iterator.collisionBalls();
+        }
     }
-
+    requestAnimationFrame(loop);
 }
 
 loop();
