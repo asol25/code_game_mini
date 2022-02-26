@@ -42,6 +42,7 @@ class Ball extends Shape {
 
         this.color = color;
         this.size = size;
+        this.exists = true;
     }
 
     draw() {
@@ -82,6 +83,8 @@ class Ball extends Shape {
 
                 if (distance < this.size + ball.size) {
                     ball.color = this.color = randomRGB();
+                    this.exists = true;
+                    break;
                 }
             }
         }
@@ -146,26 +149,27 @@ class EvilCircle extends Shape {
 
     collisionDetect() {
         for (const ball of balls) {
-            if (this.exists) {
+            if (ball.exists) {
                 const dx = this.x - ball.x;
                 const dy = this.y - ball.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < this.size + ball.size) {
-                    this.exists = false;
+                    ball.exists = false;
+                    count++;
+                    para.textContent = 'YOU dead: ' + count;
                 }
-            }
+            } 
         }
     }
-
 }
 
 // define array to store balls and populate it
 
 const balls = [];
 
-while (balls.length < 25) {
-    const size = random(10, 20);
+while (balls.length < 3) {
+    const size = random(50, 65);
     const ball = new Ball(
         // ball position always drawn at least one ball width
         // away from the edge of the canvas, to avoid drawing errors
@@ -174,8 +178,10 @@ while (balls.length < 25) {
         random(-7, 7),
         random(-7, 7),
         randomRGB(),
-        size
+        size,
     );
+    // count++;
+    // para.textContent = 'YOU dead: ' + count;  
     balls.push(ball);
 }
 
@@ -185,20 +191,16 @@ function loop() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
     ctx.fillRect(0, 0, width, height);
 
-    for (const ball of balls) {
-        ball.draw();
-        ball.update();
-        ball.collisionDetect();
-    }
+    balls.forEach(element => {
+        element.draw();
+        element.update();
+        element.collisionDetect();
+    });
 
     if (evilBall.exists) {
         evilBall.draw();
         evilBall.checkBounds();
-        evilBall.collisionDetect();
-    } else {
-        count++;
-        para.textContent = 'YOU dead: ' + count;
-        evilBall.exists = true;
+        evilBall.collisionDetect(); 
     }
     requestAnimationFrame(loop);
 }

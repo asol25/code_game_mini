@@ -8,8 +8,8 @@ html, body {
   }
   
   body {
-    /* overflow: hidden; */
-    height: inherit;
+    overflow: hidden;
+    background: black;
   }
   
   h1 {
